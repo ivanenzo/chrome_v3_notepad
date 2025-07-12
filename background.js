@@ -88,52 +88,39 @@ chrome.action.onClicked.addListener(async (tab) => {
   try {
     console.log('Injecting content script and CSS...');
     
-    // Check if content script is already injected
+    // Always try to toggle first
     try {
-      const response = await chrome.tabs.sendMessage(tab.id, { action: 'ping' });
+      const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleNotepad' });
       if (response && response.success) {
-        console.log('Content script already exists, toggling...');
-        const toggleResponse = await chrome.tabs.sendMessage(tab.id, { action: 'toggleNotepad' });
-        console.log('Toggle response:', toggleResponse);
+        console.log('Notepad toggled successfully:', response);
+        return;
       }
-      return;
-    } catch (pingError) {
+    } catch (messageError) {
       console.log('Content script not found, injecting...');
-      
-      // Inject content script and CSS
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['content.js']
-      });
-      
-      await chrome.scripting.insertCSS({
-        target: { tabId: tab.id },
-        files: ['styles.css']
-      });
     }
+    
+    // Inject content script and CSS if not found
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['content.js']
+    });
+    
+    await chrome.scripting.insertCSS({
+      target: { tabId: tab.id },
+      files: ['styles.css']
+    });
     
     console.log('Scripts injected successfully');
     
-    // Wait for initialization then send toggle message
+    // Wait briefly for initialization then toggle
     setTimeout(async () => {
       try {
-        console.log('Sending toggle message...');
         const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleNotepad' });
-        console.log('Toggle message sent successfully:', response);
-      } catch (messageError) {
-        console.error('Error sending message:', messageError);
-        
-        // Retry after longer delay
-        setTimeout(async () => {
-          try {
-            const retryResponse = await chrome.tabs.sendMessage(tab.id, { action: 'toggleNotepad' });
-            console.log('Retry message sent successfully:', retryResponse);
-          } catch (retryError) {
-            console.error('Final retry failed:', retryError);
-          }
-        }, 1000);
+        console.log('Initial toggle after injection:', response);
+      } catch (error) {
+        console.error('Failed to toggle after injection:', error);
       }
-    }, 100);
+    }, 200);
     
   } catch (error) {
     console.error('Extension injection error:', error);

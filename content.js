@@ -417,15 +417,8 @@ class PureNotepad {
     console.log('Showing Pure Notepad...');
     this.isVisible = true;
     this.container.style.display = 'block';
-    this.container.style.opacity = '0';
-    this.container.style.transform = 'scale(0.95)';
-    
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        this.container.style.opacity = (this.settings.opacity || 95) / 100;
-        this.container.style.transform = 'scale(1)';
-      });
-    });
+    this.container.style.opacity = (this.settings.opacity || 95) / 100;
+    this.container.style.transform = 'scale(1)';
     
     setTimeout(() => this.editor.focus(), 100);
   }
@@ -433,18 +426,11 @@ class PureNotepad {
   hide() {
     console.log('Hiding Pure Notepad...');
     this.isVisible = false;
-    this.container.style.opacity = '0';
-    this.container.style.transform = 'scale(0.95)';
-    
-    setTimeout(() => {
-      this.container.style.display = 'none';
-    }, 300);
+    this.container.style.display = 'none';
   }
 
   toggle() {
     console.log('Toggling Pure Notepad. Current state:', this.isVisible);
-    console.log('Container display:', this.container.style.display);
-    console.log('Container opacity:', this.container.style.opacity);
     
     if (this.isVisible) {
       this.hide();
@@ -1081,19 +1067,12 @@ if (!window.pureNotepadInitialized) {
   
   console.log('Pure Notepad content script loaded');
   
-  // Initialize immediately if DOM is already ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('DOM ready, initializing Pure Notepad...');
-      new PureNotepad();
-    });
-  } else {
-    console.log('DOM already ready, initializing Pure Notepad immediately...');
-    new PureNotepad();
-  }
+  // Initialize immediately
+  console.log('Initializing Pure Notepad immediately...');
+  new PureNotepad();
 }
 
-// Also listen for messages immediately in case the extension is clicked before DOM is ready
+// Listen for messages immediately
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('Early message received:', request);
   
@@ -1105,36 +1084,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     return true;
   } else if (request.action === 'toggleNotepad') {
-    // If notepad isn't initialized yet, wait for it
     if (!window.pureNotepadInstance) {
-      console.log('Notepad not ready, waiting...');
-      const checkReady = setInterval(() => {
-        if (window.pureNotepadInstance) {
-          console.log('Notepad ready, toggling...');
-          clearInterval(checkReady);
-          console.log('Instance visibility before delayed toggle:', window.pureNotepadInstance.isVisible);
-          window.pureNotepadInstance.toggle();
-          console.log('Instance visibility after delayed toggle:', window.pureNotepadInstance.isVisible);
-          sendResponse({success: true, delayed: true});
-        }
-      }, 100);
-      
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        clearInterval(checkReady);
-        if (!window.pureNotepadInstance) {
-          console.error('Notepad failed to initialize within 5 seconds');
-          sendResponse({success: false, error: 'Initialization timeout'});
-        }
-      }, 5000);
-      
-      return true; // Keep message channel open
+      console.log('Notepad not ready yet');
+      sendResponse({success: false, error: 'Not initialized'});
     } else {
-      console.log('Notepad ready, toggling immediately...');
-      console.log('Instance visibility before immediate toggle:', window.pureNotepadInstance.isVisible);
+      console.log('Toggling notepad...');
       window.pureNotepadInstance.toggle();
-      console.log('Instance visibility after immediate toggle:', window.pureNotepadInstance.isVisible);
-      sendResponse({success: true});
+      sendResponse({success: true, visible: window.pureNotepadInstance.isVisible});
     }
   }
   

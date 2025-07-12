@@ -45,10 +45,8 @@ A beautiful, offline-only notepad Chrome extension with macOS-inspired design. K
 ### Developer Mode Installation
 
 1. **Download the Extension**
-   ```bash
-   git clone <repository-url>
-   cd pure-chrome-notepad
-   ```
+   - Download or clone this repository
+   - Extract the files to a folder
 
 2. **Open Chrome Extensions**
    - Go to `chrome://extensions/`
@@ -152,9 +150,9 @@ pure-chrome-notepad/
 ```
 
 ### **Building from Source**
-1. Clone the repository
-2. No build process required – it's vanilla JavaScript
-3. Load directly in Chrome developer mode
+1. Download or clone the repository
+2. No build process required – it's pure vanilla JavaScript
+3. Load the folder directly in Chrome developer mode
 
 ### **Contributing**
 1. Fork the repository
