@@ -116,11 +116,14 @@ chrome.action.onClicked.addListener(async (tab) => {
     setTimeout(async () => {
       try {
         const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleNotepad' });
-        console.log('Initial toggle after injection:', response);
+        console.log('Toggle response:', response);
+        if (!response || !response.success) {
+          console.error('Failed to toggle notepad:', response);
+        }
       } catch (error) {
         console.error('Failed to toggle after injection:', error);
       }
-    }, 200);
+    }, 500);
     
   } catch (error) {
     console.error('Extension injection error:', error);

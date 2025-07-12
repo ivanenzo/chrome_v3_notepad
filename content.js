@@ -392,6 +392,8 @@ class PureNotepad {
         console.log('Current visibility before toggle:', this.isVisible);
         this.toggle();
         console.log('Current visibility after toggle:', this.isVisible);
+        console.log('Container visibility:', this.container.style.visibility);
+        console.log('Container display:', this.container.style.display);
         sendResponse({success: true, action: 'toggleNotepad', visible: this.isVisible});
       } else if (request.action === 'showPopup') {
         console.log('Showing popup...');

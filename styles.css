@@ -859,9 +859,22 @@
   }
 }
 
-/* Ensure no background interference */
-body:has(.pure-notepad-container) {
-  background: inherit !important;
+/* Ensure page background stays transparent behind notepad */
+body {
+  /* Don't modify body background */
+}
+
+/* Create transparent overlay effect */
+.pure-notepad-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Override any page styles that might interfere */
