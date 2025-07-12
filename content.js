@@ -52,6 +52,30 @@ class PureNotepad {
     this.isVisible = false;
   }
 
+  updateNotesList() {
+    if (!this.noteSelector) return;
+    
+    const currentValue = this.noteSelector.value;
+    this.noteSelector.innerHTML = '';
+    
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select a note...';
+    this.noteSelector.appendChild(defaultOption);
+    
+    // Add notes
+    this.notes.forEach(note => {
+      const option = document.createElement('option');
+      option.value = note.id;
+      option.textContent = note.title;
+      if (note.id === this.currentNoteId) {
+        option.selected = true;
+      }
+      this.noteSelector.appendChild(option);
+    });
+  }
+
   async loadData() {
     try {
       const data = await chrome.storage.local.get(['notes', 'currentNoteId', 'settings']);
@@ -73,6 +97,20 @@ class PureNotepad {
       });
     } catch (error) {
       console.error('Error saving data:', error);
+    }
+  }
+
+  loadCurrentNote() {
+    console.log('Loading current note...');
+    if (this.currentNote && this.noteTitle && this.editor) {
+      console.log('Setting note title and content:', this.currentNote.title);
+      this.noteTitle.value = this.currentNote.title || '';
+      this.editor.value = this.currentNote.content || '';
+      this.noteSelector.value = this.currentNote.id;
+      this.updateWordCount();
+      this.updateLastModified();
+    } else {
+      console.log('Current note or elements not ready yet');
     }
   }
 
@@ -236,6 +274,28 @@ class PureNotepad {
 
     this.updateWordCount();
     this.updateLastModified();
+  }
+
+  updateWordCount() {
+    if (!this.editor || !this.wordCount || !this.charCount) return;
+    
+    const text = this.editor.value.trim();
+    const words = text ? text.split(/\s+/).filter(word => word.length > 0).length : 0;
+    const chars = this.editor.value.length;
+    
+    this.wordCount.textContent = `${words} words`;
+    this.charCount.textContent = `${chars} characters`;
+  }
+
+  updateLastModified() {
+    if (!this.lastModified) return;
+    
+    if (this.currentNote?.updatedAt) {
+      const date = new Date(this.currentNote.updatedAt);
+      this.lastModified.textContent = date.toLocaleString();
+    } else {
+      this.lastModified.textContent = 'Never';
+    }
   }
 
   setupEventListeners() {
@@ -550,24 +610,6 @@ class PureNotepad {
     this.autoSave();
   }
 
-  updateWordCount() {
-    const text = this.editor.value.trim();
-    const words = text ? text.split(/\s+/).filter(word => word.length > 0).length : 0;
-    const chars = this.editor.value.length;
-    
-    this.wordCount.textContent = `${words} words`;
-    this.charCount.textContent = `${chars} characters`;
-  }
-
-  updateLastModified() {
-    if (this.currentNote?.updatedAt) {
-      const date = new Date(this.currentNote.updatedAt);
-      this.lastModified.textContent = date.toLocaleString();
-    } else {
-      this.lastModified.textContent = 'Never';
-    }
-  }
-
   autoSave() {
     if (!this.settings.autoSave) return;
     
@@ -646,28 +688,6 @@ class PureNotepad {
     }
     
     this.saveData();
-  }
-
-  updateNotesList() {
-    const currentValue = this.noteSelector.value;
-    this.noteSelector.innerHTML = '';
-    
-    // Add default option
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = 'Select a note...';
-    this.noteSelector.appendChild(defaultOption);
-    
-    // Add notes
-    this.notes.forEach(note => {
-      const option = document.createElement('option');
-      option.value = note.id;
-      option.textContent = note.title;
-      if (note.id === this.currentNoteId) {
-        option.selected = true;
-      }
-      this.noteSelector.appendChild(option);
-    });
   }
 
   deleteCurrentNote() {
