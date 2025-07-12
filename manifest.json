@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Pure Notepad",
+  "version": "1.0.0",
+  "description": "A beautiful, offline-only notepad with macOS-inspired design",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icon16.svg",
+      "48": "icon48.svg",
+      "128": "icon128.svg"
+    }
+  },
+  "commands": {
+    "toggle-notepad": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+N",
+        "mac": "Command+Shift+N"
+      },
+      "description": "Toggle Pure Notepad"
+    }
+  },
+  "icons": {
+    "16": "icon16.svg",
+    "48": "icon48.svg",
+    "128": "icon128.svg"
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
