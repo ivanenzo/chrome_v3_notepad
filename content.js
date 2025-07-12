@@ -44,7 +44,12 @@ class PureNotepad {
     this.applyTheme();
     console.log('Updating notes list...');
     this.updateNotesList();
+    console.log('Loading current note...');
+    this.loadCurrentNote();
     console.log('Pure Notepad initialized successfully!');
+    
+    // Start hidden
+    this.isVisible = false;
   }
 
   async loadData() {
@@ -83,7 +88,7 @@ class PureNotepad {
       width: ${this.settings.size?.width || 450}px;
       height: ${this.settings.size?.height || 600}px;
       z-index: 999999;
-      display: none;
+      display: block;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
       box-shadow: 0 25px 50px rgba(0,0,0,0.4);
       border-radius: 12px;
@@ -96,6 +101,8 @@ class PureNotepad {
       color: #000000;
       opacity: ${(this.settings.opacity || 95) / 100};
       pointer-events: auto;
+      visibility: hidden;
+      transform: scale(0.95);
     `;
 
     // Title bar with macOS traffic lights
@@ -416,7 +423,7 @@ class PureNotepad {
   show() {
     console.log('Showing Pure Notepad...');
     this.isVisible = true;
-    this.container.style.display = 'block';
+    this.container.style.visibility = 'visible';
     this.container.style.opacity = (this.settings.opacity || 95) / 100;
     this.container.style.transform = 'scale(1)';
     
@@ -426,7 +433,9 @@ class PureNotepad {
   hide() {
     console.log('Hiding Pure Notepad...');
     this.isVisible = false;
-    this.container.style.display = 'none';
+    this.container.style.visibility = 'hidden';
+    this.container.style.transform = 'scale(0.95)';
+    this.container.style.opacity = '0';
   }
 
   toggle() {
@@ -440,11 +449,7 @@ class PureNotepad {
   }
 
   minimize() {
-    this.container.style.transform = 'scale(0.1)';
-    this.container.style.opacity = '0';
-    setTimeout(() => {
-      this.hide();
-    }, 300);
+    this.hide();
   }
 
   toggleMaximize() {
