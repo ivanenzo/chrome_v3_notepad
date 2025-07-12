@@ -15,11 +15,9 @@ This is your first note. Here's what you can do:
 • **Search** through all your notes instantly
 • **Export** to .txt or .md files
 • **Markdown support** for **bold** and *italic* text
-• **Drag & resize** - Position anywhere on screen
-• **macOS design** - Beautiful traffic lights and blur effects
+• **Extension popup** - Quick access from toolbar
 
 ## 🎯 Keyboard Shortcuts
-• **⌘+Shift+N** - Toggle notepad visibility
 • **⌘+B** - Make text bold
 • **⌘+I** - Make text italic
 • **⌘+F** - Search notes
@@ -41,8 +39,6 @@ Happy writing! ✍️`,
       fontSize: 14,
       fontFamily: 'SF Pro Display',
       opacity: 95,
-      position: { x: 100, y: 100 },
-      size: { width: 450, height: 600 },
       autoSave: true,
       wordWrap: true,
       colorTheme: 0
@@ -50,139 +46,17 @@ Happy writing! ✍️`,
   });
 });
 
-// Handle extension icon click
-chrome.action.onClicked.addListener(async (tab) => {
-  console.log('Extension icon clicked on tab:', tab.url);
-  
-  // Check if this is a restricted page FIRST
-  if (tab.url && (
-    tab.url.startsWith('chrome://') || 
-    tab.url.startsWith('chrome-extension://') || 
-    tab.url.startsWith('edge://') || 
-    tab.url.startsWith('about:') ||
-    tab.url.startsWith('moz-extension://') ||
-    tab.url.startsWith('chrome-search://') ||
-    tab.url.startsWith('devtools://') ||
-    !tab.url.startsWith('http')
-  )) {
-    console.log('Cannot inject on restricted page:', tab.url);
-    
-    // Show notification for restricted pages
-    try {
-      await chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icon48.svg',
-        title: 'Pure Notepad',
-        message: 'Cannot open notepad on this page. Please navigate to a regular website (like google.com) and try again.'
-      });
-    } catch (notificationError) {
-      console.log('Notification not available, showing alert');
-      // Fallback: open a new tab with instructions
-      chrome.tabs.create({
-        url: 'data:text/html,<html><head><title>Pure Notepad</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:50px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;}</style></head><body><h1>🚫 Cannot Open Notepad Here</h1><p>Chrome extensions cannot run on system pages for security reasons.</p><p><strong>To use Pure Notepad:</strong></p><ol style="text-align:left;max-width:400px;margin:20px auto;"><li>Navigate to any regular website (like google.com)</li><li>Click the Pure Notepad extension icon</li><li>Start writing!</li></ol><p><em>This tab will close automatically in 5 seconds...</em></p><script>setTimeout(()=>window.close(),5000);</script></body></html>'
-      });
-    }
-    return;
-  }
-
-  try {
-    console.log('Injecting content script and CSS...');
-    
-    // Always try to toggle first
-    try {
-      const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleNotepad' });
-      if (response && response.success) {
-        console.log('Notepad toggled successfully:', response);
-        return;
-      }
-    } catch (messageError) {
-      console.log('Content script not found, injecting...');
-    }
-    
-    // Inject content script and CSS if not found
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['content.js']
-    });
-    
-    await chrome.scripting.insertCSS({
-      target: { tabId: tab.id },
-      files: ['styles.css']
-    });
-    
-    console.log('Scripts injected successfully');
-    
-    // Wait briefly for initialization then toggle
-    setTimeout(async () => {
-      try {
-        const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleNotepad' });
-        console.log('Toggle response:', response);
-        if (!response || !response.success) {
-          console.error('Failed to toggle notepad:', response);
-        }
-      } catch (error) {
-        console.error('Failed to toggle after injection:', error);
-      }
-    }, 500);
-    
-  } catch (error) {
-    console.error('Extension injection error:', error);
-    
-    // Show user-friendly error message
-    try {
-      await chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icon48.svg',
-        title: 'Pure Notepad Error',
-        message: 'Could not open notepad. Please refresh the page and try again.'
-      });
-    } catch (notificationError) {
-      console.log('Could not show notification');
-    }
-  }
-});
-
-// Handle keyboard shortcuts
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'toggle-notepad') {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab) {
-      // Check for restricted pages
-      if (tab.url && (
-        tab.url.startsWith('chrome://') || 
-        tab.url.startsWith('chrome-extension://') || 
-        tab.url.startsWith('edge://') || 
-        tab.url.startsWith('about:') ||
-        !tab.url.startsWith('http')
-      )) {
-        console.log('Cannot use keyboard shortcut on restricted page:', tab.url);
-        return;
-      }
-      
-      try {
-        await chrome.tabs.sendMessage(tab.id, { action: 'toggleNotepad' });
-      } catch (error) {
-        console.log('Content script not available for keyboard shortcut');
-      }
-    }
-  }
-});
-
 // Handle storage changes to sync across tabs
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local') {
-    // Broadcast storage changes to all tabs
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach(tab => {
-        if (tab.url && tab.url.startsWith('http')) {
-          chrome.tabs.sendMessage(tab.id, {
-            action: 'storageChanged',
-            changes: changes
-          }).catch(() => {
-            // Ignore errors for tabs without content script
-          });
-        }
-      });
-    });
+    console.log('Storage changed:', changes);
+  }
+});
+
+// Handle keyboard shortcuts (optional - for future use)
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'toggle-notepad') {
+    // Could open popup programmatically if needed
+    console.log('Keyboard shortcut triggered');
   }
 });
